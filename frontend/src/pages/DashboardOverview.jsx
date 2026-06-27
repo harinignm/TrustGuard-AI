@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+console.log("Backend URL:", API_BASE_URL);
 import { 
   Shield, 
   CheckCircle, 
@@ -49,13 +50,13 @@ export default function DashboardOverview({ setTab }) {
     setLoading(true);
     try {
       // Fetch stats
-      const statsRes = await fetch(`${API_BASE}/api/dashboard/stats`);
+      const statsRes = await fetch(`${API_BASE_URL}/api/dashboard/stats`);
       if (!statsRes.ok) throw new Error('Failed to fetch dashboard stats');
       const statsData = await statsRes.json();
       setStats(statsData);
 
       // Fetch AI recommendations
-      const recsRes = await fetch(`${API_BASE}/api/admin/recommendations`);
+      const recsRes = await fetch(`${API_BASE_URL}/api/admin/recommendations`);
       if (recsRes.ok) {
         const recsData = await recsRes.json();
         setRecs(recsData);
@@ -362,7 +363,7 @@ export default function DashboardOverview({ setTab }) {
         <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white font-heading">Recent suspicious Activities</h3>
           <a
-            href={`${API_BASE}/api/dashboard/export-csv`}
+            href={`${API_BASE_URL}/api/dashboard/export-csv`}
             className="flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300 rounded-lg transition"
           >
             <FileDown className="h-3.5 w-3.5" />

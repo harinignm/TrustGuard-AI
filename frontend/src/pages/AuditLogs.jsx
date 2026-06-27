@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function AuditLogs() {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -25,7 +26,7 @@ export default function AuditLogs() {
       if (riskLevel) params.append('risk_level', riskLevel);
       if (status) params.append('status', status);
       
-      const response = await fetch(`http://localhost:5000/api/dashboard/logs?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/logs?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setLogs(data);
@@ -55,7 +56,7 @@ export default function AuditLogs() {
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Historical verification records, authorization actions, and metadata vectors.</p>
         </div>
         <a
-          href="http://localhost:5000/api/dashboard/export-csv"
+          href={`${API_BASE_URL}/api/dashboard/export-csv`}
           className="flex items-center space-x-2 text-sm font-semibold px-4 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-350 rounded-xl transition"
         >
           <FileDown className="h-4.5 w-4.5" />

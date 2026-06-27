@@ -19,6 +19,24 @@ export default function App() {
     }
   }, [darkMode]);
 
+  // Run backend environment audit and health check
+  useEffect(() => {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    console.log("API URL:", API_BASE_URL);
+    if (!API_BASE_URL) {
+      console.error("VITE_API_BASE_URL is undefined at runtime!");
+    } else {
+      fetch(`${API_BASE_URL}/`)
+        .then(res => res.json())
+        .then(data => {
+          console.log("Health check response:", data);
+        })
+        .catch(err => {
+          console.error("Health check request failed:", err);
+        });
+    }
+  }, []);
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':

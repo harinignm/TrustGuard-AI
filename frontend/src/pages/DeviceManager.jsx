@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 export default function DeviceManager() {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -17,7 +18,7 @@ export default function DeviceManager() {
   const fetchDevices = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/admin/devices');
+      const response = await fetch(`${API_BASE_URL}/api/admin/devices`);
       if (response.ok) {
         const data = await response.json();
         setDevices(data);
@@ -35,7 +36,7 @@ export default function DeviceManager() {
 
   const handleToggleTrust = async (deviceId, currentStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/devices/${deviceId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/devices/${deviceId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_trusted: currentStatus === 1 ? 0 : 1 })
@@ -51,7 +52,7 @@ export default function DeviceManager() {
   const handleDeleteDevice = async (deviceId) => {
     if (!confirm('Are you sure you want to delete this device from the registry?')) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/devices/${deviceId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/devices/${deviceId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
