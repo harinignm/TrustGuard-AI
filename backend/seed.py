@@ -118,22 +118,24 @@ def seed_db():
         (inserted_users["admin"], "admin", base_time + timedelta(days=1), "192.168.1.50", "fp_admin_mac", "MacBook Pro (Chrome/macOS)", "San Francisco", "USA", 10, "Low", ["device_trusted", "known_location"], "Success"),
         
         # Scenario 1: Unknown device for Alice -> Medium Risk (OTP verified successfully)
-        (inserted_users["alice"], "alice", base_time + timedelta(days=1, hours=4), "198.51.100.15", "fp_alice_unknown_safari", "Safari (macOS)", "New York", "USA", 45, "Medium", ["new_device"], "OTP_Verified"),
+        (inserted_users["alice"], "alice", base_time + timedelta(days=1, hours=4), "198.51.100.15", "fp_alice_unknown_safari", "Safari (macOS)", "New York", "USA", 40, "Medium", ["new_device"], "OTP_Verified"),
         
         # Scenario 2: Suspicious login from Moscow for Bob -> High Risk (Blocked)
-        (inserted_users["bob"], "bob", base_time + timedelta(days=1, hours=8), "95.108.174.12", "fp_hacker_chrome", "Chrome (Windows)", "Moscow", "Russia", 85, "High", ["new_device", "unusual_location", "impossible_travel"], "Blocked"),
+        (inserted_users["bob"], "bob", base_time + timedelta(days=1, hours=8), "95.108.174.12", "fp_hacker_chrome", "Chrome (Windows)", "Moscow", "Russia", 100, "High", ["new_device", "unusual_location", "impossible_travel"], "Blocked"),
         
         # Scenario 3: Diana login (unusual location, medium risk -> OTP fails)
         (inserted_users["diana"], "diana", base_time + timedelta(days=2, hours=10), "77.111.246.5", "fp_diana_ipad", "iPad Pro (Safari/iOS)", "Berlin", "Germany", 40, "Medium", ["unusual_location"], "OTP_Failed"),
         
         # Scenario 4: Multiple failed login attempts leading to block
-        (None, "alice", base_time + timedelta(days=3, hours=1), "198.51.100.20", "fp_attacker_device", "Chrome (Linux)", "New York", "USA", 35, "Medium", ["new_device", "failed_password_attempt"], "OTP_Pending"),
-        (inserted_users["alice"], "alice", base_time + timedelta(days=3, hours=1, minutes=2), "198.51.100.20", "fp_attacker_device", "Chrome (Linux)", "New York", "USA", 55, "Medium", ["new_device", "multiple_failed_attempts"], "OTP_Failed"),
-        (inserted_users["alice"], "alice", base_time + timedelta(days=3, hours=1, minutes=4), "198.51.100.20", "fp_attacker_device", "Chrome (Linux)", "New York", "USA", 75, "High", ["new_device", "multiple_failed_attempts", "brute_force_detected"], "Blocked"),
+        (None, "alice", base_time + timedelta(days=3, hours=1), "198.51.100.20", "fp_attacker_device", "Chrome (Linux)", "New York", "USA", 40, "Medium", ["new_device", "failed_password_attempt"], "OTP_Pending"),
+        (inserted_users["alice"], "alice", base_time + timedelta(days=3, hours=1, minutes=2), "198.51.100.20", "fp_attacker_device", "Chrome (Linux)", "New York", "USA", 60, "Medium", ["new_device", "multiple_failed_attempts"], "OTP_Failed"),
+        (inserted_users["alice"], "alice", base_time + timedelta(days=3, hours=1, minutes=4), "198.51.100.20", "fp_attacker_device", "Chrome (Linux)", "New York", "USA", 80, "High", ["new_device", "multiple_failed_attempts", "brute_force_detected"], "Blocked"),
 
-        # Charlie travels to Tokyo (Unusual location -> Medium Risk -> OTP verified)
-        (inserted_users["charlie"], "charlie", base_time + timedelta(days=4, hours=6), "210.140.10.33", "fp_charlie_pixel", "Pixel 8 Pro (Chrome/Android)", "Tokyo", "Japan", 40, "Medium", ["unusual_location"], "OTP_Verified"),
-        (inserted_users["charlie"], "charlie", base_time + timedelta(days=4, hours=12), "210.140.10.33", "fp_charlie_pixel", "Pixel 8 Pro (Chrome/Android)", "Tokyo", "Japan", 10, "Low", ["device_trusted", "known_location"], "Success"),
+        # Charlie travels to Seoul (Unusual location -> Medium Risk -> OTP verified)
+        # NOTE: We use Seoul/South Korea here (not Tokyo/Japan) so that Tokyo remains
+        # an unknown location for the simulator's Unusual Location scenario.
+        (inserted_users["charlie"], "charlie", base_time + timedelta(days=4, hours=6), "211.116.15.20", "fp_charlie_pixel", "Pixel 8 Pro (Chrome/Android)", "Seoul", "South Korea", 40, "Medium", ["unusual_location"], "OTP_Verified"),
+        (inserted_users["charlie"], "charlie", base_time + timedelta(days=4, hours=12), "211.116.15.20", "fp_charlie_pixel", "Pixel 8 Pro (Chrome/Android)", "Seoul", "South Korea", 10, "Low", ["device_trusted", "known_location"], "Success"),
 
         # Alice logs in normally
         (inserted_users["alice"], "alice", base_time + timedelta(days=4, hours=18), "198.51.100.12", "fp_alice_iphone", "iPhone 15 (Safari/iOS)", "New York", "USA", 10, "Low", ["device_trusted", "known_location"], "Success"),
@@ -153,10 +155,10 @@ def seed_db():
         (inserted_users["bob"], "bob", base_time + timedelta(days=6, hours=23, minutes=30), "203.0.113.45", "fp_bob_thinkpad", "ThinkPad T14 (Firefox/Linux)", "London", "UK", 35, "Medium", ["unusual_time"], "OTP_Verified"),
         
         # New Device for Diana (Medium Risk -> Verified)
-        (inserted_users["diana"], "diana", base_time + timedelta(days=7, hours=1), "82.120.10.4", "fp_diana_laptop", "MacBook Air (Chrome/macOS)", "Paris", "France", 45, "Medium", ["new_device"], "OTP_Verified"),
+        (inserted_users["diana"], "diana", base_time + timedelta(days=7, hours=1), "82.120.10.4", "fp_diana_laptop", "MacBook Air (Chrome/macOS)", "Paris", "France", 40, "Medium", ["new_device"], "OTP_Verified"),
         
         # Real-time simulation demo data (recently failed attempt)
-        (None, "diana", base_time + timedelta(days=7, hours=3), "82.120.10.4", "fp_diana_unknown", "Chrome (Windows)", "Paris", "France", 45, "Medium", ["new_device"], "OTP_Failed"),
+        (None, "diana", base_time + timedelta(days=7, hours=3), "82.120.10.4", "fp_diana_unknown", "Chrome (Windows)", "Paris", "France", 40, "Medium", ["new_device"], "OTP_Failed"),
     ]
 
     for uid, name, ts, ip, fp, dname, city, country, score, level, factors, status in logs:

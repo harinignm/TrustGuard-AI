@@ -56,13 +56,11 @@ def calculate_risk_score(user_id, username, ip_address, device_fingerprint, loca
         )
         is_device_trusted = cursor.fetchone() is not None
 
-    if not is_device_trusted:
-        score += 35
-        factors.append("new_device")
-    else:
-        factors.append("device_trusted")
+    is_new_device = not is_device_trusted
 
     # 2. Location Check
+    is_unusual_location = False
+    locations = []
     if user_id:
         # Get historical successful locations for this user
         cursor.execute(
@@ -81,16 +79,11 @@ def calculate_risk_score(user_id, username, ip_address, device_fingerprint, loca
                     break
             
             if not matches_location:
-                score += 30
-                factors.append("unusual_location")
-            else:
-                factors.append("known_location")
-        else:
-            # First time user logs in, we don't penalize location as heavily, but flag it
-            factors.append("first_login_location")
-            
-        # 3. Impossible Travel Check (different country or city > 500 miles within 3 hours)
-        # For simplicity in prototype: check if any successful login was in a different country within past 3 hours
+                is_unusual_location = True
+
+    # 3. Impossible Travel Check
+    is_impossible_travel = False
+    if user_id:
         three_hours_ago = (current_time - timedelta(hours=3)).isoformat()
         cursor.execute(
             "SELECT location_country, location_city, timestamp FROM login_logs "
@@ -100,18 +93,11 @@ def calculate_risk_score(user_id, username, ip_address, device_fingerprint, loca
         )
         last_login = cursor.fetchone()
         if last_login and last_login['location_country'].lower() != location_country.lower():
-            score += 50
-            factors.append("impossible_travel")
-    else:
-        # User not found (brute force scenario, or wrong username)
-        score += 30
-        factors.append("unknown_user")
+            is_impossible_travel = True
 
     # 4. Time-Based Risk (Unusual hours: 11 PM to 5 AM)
     login_hour = current_time.hour
-    if login_hour >= 23 or login_hour < 5:
-        score += 15
-        factors.append("unusual_time")
+    is_unusual_time = (login_hour >= 23 or login_hour < 5)
 
     # 5. Brute Force Check (Failed logins in last 10 minutes)
     ten_minutes_ago = (current_time - timedelta(minutes=10)).isoformat()
@@ -120,26 +106,77 @@ def calculate_risk_score(user_id, username, ip_address, device_fingerprint, loca
         (username, ten_minutes_ago)
     )
     failed_attempts_count = cursor.fetchone()[0]
-    
-    if failed_attempts_count >= 3:
-        score += 20
-        factors.append("brute_force_detected")
-    elif failed_attempts_count > 0:
-        score += 10
-        factors.append("multiple_failed_attempts")
+    is_brute_force = (failed_attempts_count >= 3)
+    is_multiple_failures = (failed_attempts_count > 0 and failed_attempts_count < 3)
 
     conn.close()
 
-    # Cap score at 100
-    score = min(score, 100)
-    
-    # Determine risk level
-    if score <= 30:
-        level = "Low"
-    elif score <= 70:
+    # Populate factors list
+    if is_device_trusted:
+        factors.append("device_trusted")
+    else:
+        factors.append("new_device")
+
+    if user_id:
+        if locations:
+            if not is_unusual_location:
+                factors.append("known_location")
+            else:
+                factors.append("unusual_location")
+        else:
+            factors.append("first_login_location")
+    else:
+        factors.append("unknown_user")
+
+    if is_impossible_travel:
+        factors.append("impossible_travel")
+    if is_unusual_time:
+        factors.append("unusual_time")
+    if is_brute_force:
+        factors.append("brute_force_detected")
+    elif is_multiple_failures:
+        factors.append("multiple_failed_attempts")
+
+    # Apply scenario rules and thresholds
+    if is_impossible_travel:
+        # Scenario 5: Impossible Travel
+        score = 95
+        level = "High"
+    elif is_new_device and is_unusual_location:
+        # Scenario 4: New Device + Unusual Location
+        score = 80
+        level = "High"
+    elif is_unusual_location:
+        # Scenario 3: Unusual Location
+        score = 50
+        level = "Medium"
+    elif is_new_device:
+        # Scenario 2: New Device
+        score = 50
         level = "Medium"
     else:
-        level = "High"
+        # Scenario 1: Trusted Device + Known Location
+        score = 10
+        if is_unusual_time:
+            score += 10
+        if is_multiple_failures:
+            score += 10
+        if is_brute_force:
+            score += 20
+        # Ensure it remains inside Low Risk threshold (0-30)
+        score = min(score, 30)
+        level = "Low"
+
+    # Adjust score slightly for extra flags if in Medium level, staying within threshold (31-70)
+    if level == "Medium":
+        extra = 0
+        if is_unusual_time:
+            extra += 5
+        if is_multiple_failures:
+            extra += 5
+        if is_brute_force:
+            extra += 15
+        score = min(score + extra, 70)
 
     return score, level, factors
 

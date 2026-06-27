@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { 
   PlayCircle, 
   User, 
@@ -120,7 +122,7 @@ export default function LoginSimulator() {
     simDate.setHours(hour, 0, 0, 0);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -165,7 +167,7 @@ export default function LoginSimulator() {
     setOtpError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
+      const response = await fetch(`${API_BASE}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -381,9 +383,9 @@ export default function LoginSimulator() {
               This sandbox triggers the actual **TrustGuard Risk Engine** API using mock coordinates. It scores the attempt based on:
             </p>
             <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-2 list-disc pl-4">
-              <li><strong>Device Trust (+35 pts):</strong> If the fingerprint is not registered as trusted for the chosen user.</li>
-              <li><strong>Unusual Location (+30 pts):</strong> If the user has logged in successfully before, but not from this city/country.</li>
-              <li><strong>Impossible Travel (+50 pts):</strong> If a country changes within 3 hours from the user's last successful login.</li>
+              <li><strong>Device Trust (+40 pts):</strong> If the fingerprint is not registered as trusted for the chosen user.</li>
+              <li><strong>Unusual Location (+40 pts):</strong> If the user has logged in successfully before, but not from this city/country.</li>
+              <li><strong>Impossible Travel (High Risk):</strong> If a country changes within 3 hours from the user's last successful login. Always triggers Block Access.</li>
               <li><strong>Unusual Hour (+15 pts):</strong> Logging in during nighttime hours (11 PM - 5 AM).</li>
             </ul>
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80">
